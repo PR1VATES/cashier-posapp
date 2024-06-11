@@ -1,34 +1,50 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.chart.BarChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.DatePicker?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.text.Font?>
 
-<TabPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.cashierposapp.AppController">
+<TabPane maxHeight="-Infinity" maxWidth="-Infinity" prefHeight="720.0" prefWidth="1280.0" tabClosingPolicy="UNAVAILABLE" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1" fx:controller="app.cashierposapp.AppController">
     <tabs>
         <Tab text="Cashier App">
             <content>
                 <Pane prefHeight="510.0" prefWidth="964.0">
                     <children>
-                        <DatePicker fx:id="SalesHistoryDate" layoutX="634.0" layoutY="30.0" prefHeight="25.0" prefWidth="159.0" />
-                        <ListView fx:id="cartListView" layoutX="373.0" layoutY="62.0" prefHeight="372.0" prefWidth="257.0" />
-                        <Button fx:id="addButton" layoutX="64.0" layoutY="320.0" onAction="#addToCart" text="Add" />
-                        <Button fx:id="editButton" layoutX="67.0" layoutY="355.0" onAction="#editQuantity" prefHeight="25.0" prefWidth="92.0" text="Edit Quantity" />
-                        <Button fx:id="deleteButton" layoutX="64.0" layoutY="280.0" onAction="#deleteFromCart" prefWidth="77.0" text="Delete" />
-                        <Button fx:id="checkoutButton" layoutX="698.0" layoutY="422.0" onAction="#checkOut" text="Checkout" />
-                        <ListView fx:id="SaleHistoryList" layoutX="634.0" layoutY="62.0" prefHeight="230.0" prefWidth="301.0" />
+                        <DatePicker fx:id="SalesHistoryDate" layoutX="690.0" layoutY="30.0" prefHeight="25.0" prefWidth="159.0" />
+                        <ListView fx:id="cartListView" layoutX="373.0" layoutY="94.0" prefHeight="372.0" prefWidth="257.0" />
+                        <Button fx:id="addButton" layoutX="65.0" layoutY="357.0" onAction="#addToCart" text="Add" />
+                        <Button fx:id="editButton" layoutX="68.0" layoutY="241.0" onAction="#editQuantity" prefHeight="25.0" prefWidth="92.0" text="Edit Quantity" />
+                        <Button fx:id="deleteButton" layoutX="65.0" layoutY="280.0" onAction="#deleteFromCart" prefWidth="77.0" text="Delete" />
+                        <Button fx:id="checkoutButton" layoutX="542.0" layoutY="588.0" onAction="#checkOut" prefHeight="53.0" prefWidth="88.0" style="-fx-background-color: #46c734;" text="Checkout">
+                            <font>
+                                <Font name="Arial" size="14.0" />
+                            </font></Button>
+                        <ListView fx:id="SaleHistoryList" layoutX="698.0" layoutY="93.0" prefHeight="374.0" prefWidth="241.0" />
                         <ComboBox fx:id="ItemsComboBox" layoutX="161.0" layoutY="73.0" prefWidth="200.0" promptText="Items" />
-                        <TextField fx:id="temporarytotal" editable="false" layoutX="714.0" layoutY="307.0" prefHeight="25.0" prefWidth="117.0" />
-                        <TextField fx:id="Taxtotal" editable="false" layoutX="714.0" layoutY="342.0" prefHeight="25.0" prefWidth="117.0" />
-                        <TextField fx:id="overalltotal" editable="false" layoutX="714.0" layoutY="380.0" prefHeight="25.0" prefWidth="117.0" />
-                        <Label layoutX="373.0" layoutY="34.0" text="Cart" />
-                        <Label layoutX="634.0" layoutY="311.0" text="Sub Total" />
-                        <Label layoutX="634.0" layoutY="346.0" text="Tax Amount" />
-                        <Label layoutX="634.0" layoutY="384.0" text="Total" />
-                        <Button fx:id="Showsalehistory" layoutX="805.0" layoutY="30.0" mnemonicParsing="false" onAction="#showSaleHistory" text="Show History" />
+                        <TextField fx:id="temporarytotal" editable="false" layoutX="513.0" layoutY="474.0" prefHeight="25.0" prefWidth="117.0" />
+                        <TextField fx:id="Taxtotal" editable="false" layoutX="513.0" layoutY="509.0" prefHeight="25.0" prefWidth="117.0" />
+                        <TextField fx:id="overalltotal" editable="false" layoutX="513.0" layoutY="547.0" prefHeight="25.0" prefWidth="117.0" />
+                        <Label layoutX="491.0" layoutY="65.0" text="Cart" />
+                        <Label layoutX="433.0" layoutY="478.0" text="Sub Total" />
+                        <Label layoutX="433.0" layoutY="513.0" text="Tax Amount" />
+                        <Label layoutX="433.0" layoutY="551.0" text="Total" />
+                        <Button fx:id="Showsalehistory" layoutX="847.0" layoutY="30.0" mnemonicParsing="false" onAction="#showSaleHistory" text="Show History" />
                         <DatePicker fx:id="SetCartpurchaseDate" layoutX="420.0" layoutY="30.0" prefHeight="25.0" prefWidth="200.0" promptText="Purchase Date" />
                         <TextField fx:id="Indooritemsquantity" layoutX="71.0" layoutY="73.0" prefHeight="25.0" prefWidth="83.0" promptText="Quantity" />
-                        <Button fx:id="resetCart" layoutX="636.0" layoutY="422.0" mnemonicParsing="false" onAction="#resetCart" text="Reset" />
+                        <Button fx:id="resetCart" layoutX="66.0" layoutY="321.0" mnemonicParsing="false" onAction="#resetCart" text="Reset" />
+                        <Label layoutX="762.0" layoutY="65.0" text="purchase history" />
                     </children>
                 </Pane>
             </content>
@@ -44,16 +60,16 @@
                         <Button fx:id="showButton" layoutX="340.0" layoutY="40.0" onAction="#showStatistics" prefHeight="25.0" prefWidth="81.0" text="Show data" />
                         <ListView fx:id="productListView" layoutX="50.0" layoutY="80.0" prefHeight="245.0" prefWidth="414.0" />
                         <PieChart fx:id="productPieChart" layoutX="512.0" layoutY="70.0" prefHeight="266.0" prefWidth="449.0" style="-fx-border-color: white;" title="Top product" />
-                  <ListView fx:id="Profit_list_view" layoutX="669.0" layoutY="386.0" prefHeight="251.0" prefWidth="264.0" />
-                  <Label layoutX="17.0" layoutY="326.0" prefHeight="40.0" prefWidth="139.0" text="Profit Chart" />
-                  <BarChart fx:id="Profitgraph" layoutX="45.0" layoutY="362.0" prefHeight="301.0" prefWidth="624.0">
-                    <xAxis>
-                      <CategoryAxis side="BOTTOM" />
-                    </xAxis>
-                    <yAxis>
-                      <NumberAxis side="LEFT" />
-                    </yAxis>
-                  </BarChart>
+                        <ListView fx:id="Profit_list_view" layoutX="669.0" layoutY="386.0" prefHeight="251.0" prefWidth="264.0" />
+                        <Label layoutX="17.0" layoutY="326.0" prefHeight="40.0" prefWidth="139.0" text="Profit Chart" />
+                        <BarChart fx:id="Profitgraph" layoutX="45.0" layoutY="362.0" prefHeight="301.0" prefWidth="624.0">
+                            <xAxis>
+                                <CategoryAxis side="BOTTOM" />
+                            </xAxis>
+                            <yAxis>
+                                <NumberAxis side="LEFT" />
+                            </yAxis>
+                        </BarChart>
                     </children>
                 </AnchorPane>
             </content>
