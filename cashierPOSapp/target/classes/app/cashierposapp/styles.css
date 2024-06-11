@@ -1,0 +1,12 @@
+/* styles.css */
+
+/* Style the tab to adjust its padding and width */
+.tab-header-area .tab {
+    -fx-padding: 10px 30px; /* Adjust the padding to increase the width */
+    -fx-pref-width: 150px;  /* Set a preferred width for the tabs */
+}
+
+/* Style the tab label */
+.tab-header-area .tab-label {
+    -fx-padding: 10px 0px;  /* Optional: Adjust label padding */
+}
