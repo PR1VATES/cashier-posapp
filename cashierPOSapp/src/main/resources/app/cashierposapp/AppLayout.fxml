@@ -29,7 +29,6 @@
                         <DatePicker fx:id="SetCartpurchaseDate" layoutX="420.0" layoutY="30.0" prefHeight="25.0" prefWidth="200.0" promptText="Purchase Date" />
                         <TextField fx:id="Indooritemsquantity" layoutX="71.0" layoutY="73.0" prefHeight="25.0" prefWidth="83.0" promptText="Quantity" />
                         <Button fx:id="resetCart" layoutX="636.0" layoutY="422.0" mnemonicParsing="false" onAction="#resetCart" text="Reset" />
-                  <Button layoutX="115.0" layoutY="177.0" mnemonicParsing="false" text="Button" />
                     </children>
                 </Pane>
             </content>
