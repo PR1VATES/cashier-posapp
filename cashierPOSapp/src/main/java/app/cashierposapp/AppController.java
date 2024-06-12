@@ -218,12 +218,18 @@ public class AppController {
             if (file.exists()) {
                 try (BufferedReader br = new BufferedReader(new FileReader(file))) {
                     String line;
+                    int transactionTotal = 0;
                     while ((line = br.readLine()) != null) {
                         String[] parts = line.split(",");
                         if (LocalDate.parse(parts[0]).isEqual(date)) {
-                            salesHistory.add(parts[1] + " x " + parts[2] + " - ₱" + parts[3]);
+                            int quantity = Integer.parseInt(parts[2]);
+                            int price = Integer.parseInt(parts[3]);
+                            int total = quantity * price;
+                            salesHistory.add(parts[1] + " x " + parts[2] + " - ₱" + total);
+                            transactionTotal += total;
                         }
                     }
+                    salesHistory.add("Total for the day: ₱" + transactionTotal);
                 } catch (IOException e) {
                     showAlert("Error reading sales history.");
                 }
@@ -300,16 +306,20 @@ public class AppController {
     }
 
     private void updateProfitGraph(Map<LocalDate, Integer> dailyProfit) {
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Daily Profit");
+        Profitgraph.getData().clear(); // Clear existing data
 
         for (Map.Entry<LocalDate, Integer> entry : dailyProfit.entrySet()) {
-            series.getData().add(new XYChart.Data<>(entry.getKey().toString(), entry.getValue()));
-        }
+            LocalDate date = entry.getKey();
+            int profit = entry.getValue();
 
-        Profitgraph.getData().clear();
-        Profitgraph.getData().add(series);
+            XYChart.Series<String, Number> series = new XYChart.Series<>();
+            series.setName(date.toString());
+            series.getData().add(new XYChart.Data<>(date.toString(), profit));
+
+            Profitgraph.getData().add(series);
+        }
     }
+
 
     private void updateTotals() {
         double subtotal = 0;
