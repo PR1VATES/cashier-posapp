@@ -1,0 +1,10 @@
+-----Receipt-----
+Items Purchased:
+- Onion (2 x 25.00)
+- Potato (2 x 45.00)
+- Rice (2 x 60.00)
+- Pork (2 x 280.00)
+
+Total: ₱820.0
+Payment: ₱900.0
+Change: ₱80.0

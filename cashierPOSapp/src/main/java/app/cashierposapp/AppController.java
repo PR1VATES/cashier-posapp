@@ -174,6 +174,7 @@ public class AppController {
         }
     }
 
+
     @FXML
     private void checkOut() {
         if (!cartItems.isEmpty()) {
@@ -207,7 +208,10 @@ public class AppController {
                         saleRecord.append(String.format(", Total: %.2f", total));
                         saleHistory.add(saleRecord.toString());
 
-                        saveSaleHistoryToCSV();
+                        saveSaleHistoryToCSV(); // Save to CSV
+
+                        String fileName = "receipt_" + now.format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".txt";
+                        saveReceiptToFile(fileName, saleItems, total, payment, change); // Modify this line to pass the file name
 
                         cartItems.clear();
                         itemQuantities.clear();
@@ -231,6 +235,27 @@ public class AppController {
             }
         }
     }
+
+
+    private void saveReceiptToFile(String fileName, List<String> saleItems, double total, double payment, double change) {
+        try (FileWriter writer = new FileWriter(fileName)) {
+            writer.write("-----Receipt-----\n");
+
+            writer.write("Items Purchased:\n");
+            for (String item : saleItems) {
+                writer.write("- " + item + "\n");
+            }
+
+            writer.write("\nTotal: ₱" + total + "\n");
+            writer.write("Payment: ₱" + payment + "\n");
+            writer.write("Change: ₱" + change + "\n");
+
+            System.out.println("Receipt saved to " + fileName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
 
 
     @FXML

@@ -1,0 +1,9 @@
+-----Receipt-----
+Items Purchased:
+- Banana (1 x 18.00)
+- Pork (1 x 280.00)
+- Skirt (1 x 500.00)
+
+Total: ₱798.0
+Payment: ₱800.0
+Change: ₱2.0

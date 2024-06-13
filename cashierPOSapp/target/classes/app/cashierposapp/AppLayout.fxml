@@ -57,18 +57,5 @@
                 </AnchorPane>
             </content>
         </Tab>
-      <Tab text="Edit products">
-        <content>
-          <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="180.0" prefWidth="200.0">
-               <children>
-                  <ListView fx:id="productListViews" layoutX="39.0" layoutY="55.0" prefHeight="308.0" prefWidth="602.0" />
-                  <TextField fx:id="editTextBox" layoutX="666.0" layoutY="55.0" prefHeight="29.0" prefWidth="125.0" />
-                  <Button fx:id="addProduct" layoutX="666.0" layoutY="100.0" mnemonicParsing="false" prefHeight="36.0" prefWidth="107.0" text="Add item" />
-                  <Button fx:id="editProduct" layoutX="667.0" layoutY="147.0" mnemonicParsing="false" prefHeight="36.0" prefWidth="106.0" text="Edit Price" />
-                  <Button fx:id="deleteProduct" layoutX="666.0" layoutY="191.0" mnemonicParsing="false" prefHeight="36.0" prefWidth="105.0" text="Delete item" />
-               </children>
-            </AnchorPane>
-        </content>
-      </Tab>
     </tabs>
 </TabPane>

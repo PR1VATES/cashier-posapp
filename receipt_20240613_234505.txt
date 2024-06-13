@@ -1,0 +1,9 @@
+-----Receipt-----
+Items Purchased:
+- Chicken (1 x 180.00)
+- Tomato (1 x 35.00)
+- Onion (1 x 25.00)
+
+Total: ₱240.0
+Payment: ₱500.0
+Change: ₱260.0
