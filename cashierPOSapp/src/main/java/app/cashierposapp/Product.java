@@ -1,44 +1,33 @@
 package app.cashierposapp;
 
-import java.time.LocalDate;
-
 public class Product {
+    private final String id;
+    private String name;
+    private double price;
 
-    private LocalDate date;
-    private String itemName;
-    private int quantity;
-    private double retailPrice;
-
-    public Product(LocalDate date, String itemName, int quantity, double retailPrice) {
-        this.date = date;
-        this.itemName = itemName;
-        this.quantity = quantity;
-        this.retailPrice = retailPrice;
+    public Product(String id, String name, double price) {
+        this.id = id;
+        this.name = name;
+        this.price = price;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
+    public String getId() {
+        return id;
     }
 
-    public String getItemName() {
-        return itemName;
+    public String getName() {
+        return name;
     }
 
-    public void setItemName(String itemName) {
-        this.itemName = itemName;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public int getQuantity() { return quantity;}
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
+    public double getPrice() {
+        return price;
     }
 
-    public double getRetailPrice() {
-        return retailPrice;
-    }
-
-    public void setRetailPrice(double retailPrice) {
-        this.retailPrice = retailPrice;
+    public void setPrice(double price) {
+        this.price = price;
     }
 }

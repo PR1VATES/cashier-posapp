@@ -1,6 +1,0 @@
-Receipt:
-Item1 x 1
-
-Subtotal: ₱10.0
-Tax: ₱1.0
-Total: ₱11.0

@@ -3,407 +3,403 @@ package app.cashierposapp;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.XYChart;
 import javafx.scene.control.*;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.XYChart;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class AppController {
 
-    public Button showButton,checkoutButton,Showsalehistory,addButton,editButton,deleteButton;
-    @FXML
-    private DatePicker SalesHistoryDate, SetCartpurchaseDate, fromDate, toDate;
-    @FXML
-    private ListView<String> cartListView, SaleHistoryList, productListView;
-    @FXML
-    private ComboBox<String> ItemsComboBox;
-    @FXML
-    private TextField temporarytotal, Taxtotal, overalltotal, Indooritemsquantity;
-    @FXML
-    private PieChart productPieChart;
-    @FXML
-    private BarChart<String, Number> Profitgraph;
-    @FXML
-    private ListView<String> Profit_list_view;
+    private static final String SALE_HISTORY_CSV = "sale_history.csv";
+    private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    private final ObservableList<String> cartItems = FXCollections.observableArrayList();
-    private final ObservableList<String> salesHistory = FXCollections.observableArrayList();
-    private final ObservableList<String> availableItems = FXCollections.observableArrayList(
-            "Apple", "Banana", "Orange", "Milk", "Eggs", "Bread", "Butter",
-            "Cheese", "Chicken Breast", "Ground Beef", "Rice", "Pasta",
-            "Tomato Sauce", "Potato Chips", "Cookies", "Ice Cream",
-            "Cereal", "Toilet Paper", "Shampoo", "Toothpaste"
-    );
-    private final Map<String, Integer> itemPrices = new HashMap<>();
+    // FXML components in the "Cashier App" tab
+    @FXML private ListView<String> cartListView;
+    @FXML private Button addButton;
+    @FXML private Button editButton;
+    @FXML private Button deleteButton;
+    @FXML private Button checkoutButton;
+    @FXML private ListView<String> SaleHistoryList;
+    @FXML private TextField overalltotal;
+    @FXML private DatePicker SetCartpurchaseDate;
+    @FXML private TextField itemquantity;
+    @FXML private Button resetCart;
+    @FXML private ListView<String> itemselection;
 
-    public void initialize() {
-        ItemsComboBox.setItems(availableItems);
+    // FXML components in the "Statistics" tab
+    @FXML private DatePicker fromDate;
+    @FXML private DatePicker toDate;
+    @FXML private Button showButton;
+    @FXML private ListView<String> productListView;
+    @FXML private PieChart productPieChart;
+    @FXML private ListView<String> Profit_list_view;
+    @FXML private BarChart<String, Number> Profitgraph;
+
+    // Data storage
+    private ObservableList<String> cartItems;
+    private ObservableList<String> saleHistory;
+    private ObservableList<String> itemSelection;
+    private Map<String, Integer> itemQuantities;
+    private ProductList productList;  // Updated to use ProductList
+
+    @FXML
+    private void initialize() {
+        cartItems = FXCollections.observableArrayList();
+        saleHistory = FXCollections.observableArrayList();
+        itemSelection = FXCollections.observableArrayList();
+        itemQuantities = new HashMap<>();
+        productList = new ProductList();
+
         cartListView.setItems(cartItems);
-        SaleHistoryList.setItems(salesHistory);
-        productListView.setItems(FXCollections.observableArrayList());
+        SaleHistoryList.setItems(saleHistory);
+        itemselection.setItems(itemSelection);
 
-        itemPrices.put("Apple", 5);
-        itemPrices.put("Banana", 3);
-        itemPrices.put("Orange", 4);
-        itemPrices.put("Milk", 20);
-        itemPrices.put("Eggs", 15);
-        itemPrices.put("Bread", 10);
-        itemPrices.put("Butter", 25);
-        itemPrices.put("Cheese", 30);
-        itemPrices.put("Chicken Breast", 50);
-        itemPrices.put("Ground Beef", 60);
-        itemPrices.put("Rice", 40);
-        itemPrices.put("Pasta", 25);
-        itemPrices.put("Tomato Sauce", 15);
-        itemPrices.put("Potato Chips", 10);
-        itemPrices.put("Cookies", 12);
-        itemPrices.put("Ice Cream", 35);
-        itemPrices.put("Cereal", 28);
-        itemPrices.put("Toilet Paper", 18);
-        itemPrices.put("Shampoo", 45);
-        itemPrices.put("Toothpaste", 22);
+        // Populate item selection from ProductList with ID and Price
+        populateItemSelection();
 
-
-        // Make ItemsComboBox searchable
-        makeComboBoxSearchable(ItemsComboBox);
-
-        // Custom cell factory for productListView
-        productListView.setCellFactory(lv -> new ListCell<String>() {
-            @Override
-            protected void updateItem(String item, boolean empty) {
-                super.updateItem(item, empty);
-                if (empty || item == null) {
-                    setText(null);
-                } else {
-                    setText(item);
-                }
-            }
-        });
-
-        // Do not set the initial value for SetCartpurchaseDate
-        SetCartpurchaseDate.setValue(null);
+        // Load sale history from CSV
+        loadSaleHistoryFromCSV();
     }
 
-    private void makeComboBoxSearchable(ComboBox<String> comboBox) {
-        comboBox.setEditable(true);
-        comboBox.getEditor().textProperty().addListener((observable, oldValue, newValue) -> {
-            ObservableList<String> filteredItems = FXCollections.observableArrayList();
-            for (String item : availableItems) {
-                if (item.toLowerCase().contains(newValue.toLowerCase())) {
-                    filteredItems.add(item);
-                }
-            }
-            comboBox.setItems(filteredItems);
-            comboBox.show();
-        });
-        comboBox.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            comboBox.getEditor().setText(newValue);
-        });
+    private void populateItemSelection() {
+        for (Product product : productList.getAllProducts()) {
+            itemSelection.add(String.format("%s - %s (₱%.2f)", product.getId(), product.getName(), product.getPrice()));
+        }
     }
 
     @FXML
     private void addToCart() {
-        if (SetCartpurchaseDate.getValue() == null) {
-            showAlert("Set purchase date before adding items.");
-            return;
-        }
+        // Get the selected item from the item selection ListView
+        String selectedItemName = itemselection.getSelectionModel().getSelectedItem();
+        // Extract the product name from the selected item string (assuming it has a fixed format)
+        if (selectedItemName != null && !selectedItemName.isEmpty()) {
+            String productName = selectedItemName.split(" - ")[1].split(" ")[0];  // Extract the product name
 
-        String item = ItemsComboBox.getValue();
-        String quantityStr = Indooritemsquantity.getText();
-        if (item != null && !quantityStr.isEmpty()) {
-            try {
-                int quantity = Integer.parseInt(quantityStr);
-                cartItems.add(item + " x " + quantity);
-                updateTotals();
-                ItemsComboBox.getEditor().clear();
-                ItemsComboBox.setItems(availableItems);
-                ItemsComboBox.getSelectionModel().clearSelection(); // Clear the selection in the ComboBox
-            } catch (NumberFormatException e) {
-                showAlert("Invalid quantity. Please enter a number.");
-            }
-        } else {
-            showAlert("Select an item and enter quantity.");
-        }
-    }
+            // Get the corresponding product object
+            Product product = productList.getProductByName(productName);
 
-    @FXML
-    private void editQuantity() {
-        if (SetCartpurchaseDate.getValue() == null) {
-            showAlert("Set purchase date before editing items.");
-            return;
-        }
+            // Ensure the product is not null and the quantity is not empty
+            if (product != null && !itemquantity.getText().isEmpty()) {
+                String quantityInput = itemquantity.getText();
 
-        String selectedItem = cartListView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            String newQuantityStr = Indooritemsquantity.getText();
-            try {
-                int newQuantity = Integer.parseInt(newQuantityStr);
-                cartItems.set(cartListView.getSelectionModel().getSelectedIndex(), selectedItem.split(" x ")[0] + " x " + newQuantity);
-                updateTotals();
-            } catch (NumberFormatException e) {
-                showAlert("Invalid quantity. Please enter a number.");
-            }
-        } else {
-            showAlert("Select an item to edit.");
-        }
-    }
+                // Check if the input is a valid positive integer
+                if (quantityInput.matches("[1-9]\\d*")) { // Regex for positive integers
+                    int quantityToAdd = Integer.parseInt(quantityInput);
+                    String itemKey = product.getName();
 
-    @FXML
-    private void deleteFromCart() {
-        if (SetCartpurchaseDate.getValue() == null) {
-            showAlert("Set purchase date before deleting items.");
-            return;
-        }
+                    // Check if the item is already in the cart
+                    boolean itemFound = false;
+                    for (int i = 0; i < cartItems.size(); i++) {
+                        String cartItem = cartItems.get(i);
+                        if (cartItem.startsWith(itemKey + " x ")) {
+                            int currentQuantity = Integer.parseInt(cartItem.split(" x ")[1].split(" @ ")[0]);
+                            int newQuantity = currentQuantity + quantityToAdd;
+                            double totalPrice = newQuantity * product.getPrice();
+                            cartItems.set(i, String.format("%s x %d @ ₱%.2f", itemKey, newQuantity, totalPrice));
+                            itemQuantities.put(itemKey, newQuantity);
+                            itemFound = true;
+                            break;
+                        }
+                    }
 
-        String selectedItem = cartListView.getSelectionModel().getSelectedItem();
-        if (selectedItem != null) {
-            cartItems.remove(selectedItem);
-            updateTotals();
-        } else {
-            showAlert("Select an item to delete.");
-        }
-    }
+                    // If the item is not found in the cart, add it
+                    if (!itemFound) {
+                        double totalPrice = quantityToAdd * product.getPrice();
+                        cartItems.add(String.format("%s x %d @ ₱%.2f", itemKey, quantityToAdd, totalPrice));
+                        itemQuantities.put(itemKey, quantityToAdd);
+                    }
 
-    @FXML
-    private void resetCart() {
-        cartItems.clear();
-        temporarytotal.clear();
-        Taxtotal.clear();
-        overalltotal.clear();
-    }
-
-    @FXML
-    private void checkOut() {
-        if (cartItems.isEmpty()) {
-            showAlert("Cart is empty.");
-            return;
-        }
-
-        double total = Double.parseDouble(overalltotal.getText());
-        TextInputDialog dialog = new TextInputDialog();
-        dialog.setTitle("Checkout");
-        dialog.setHeaderText("Total: ₱" + total);
-        dialog.setContentText("Enter amount received:");
-
-        dialog.showAndWait().ifPresent(amountStr -> {
-            try {
-                double amount = Double.parseDouble(amountStr);
-                if (amount >= total) {
-                    double change = amount - total;
-                    showAlert("Change: ₱" + change);
-                    generateReceipt();
-                    saveSalesToCSV();
-                    resetCart();
+                    // Update the total price
+                    updateTotal();
+                    System.out.println("Item added to cart: " + itemKey + " x " + quantityToAdd);
                 } else {
-                    showAlert("Insufficient amount. Please enter a valid amount.");
-                }
-            } catch (NumberFormatException e) {
-                showAlert("Invalid amount. Please enter a number.");
-            }
-        });
-    }
-
-    @FXML
-    private void showSaleHistory() {
-        salesHistory.clear();
-        LocalDate date = SalesHistoryDate.getValue();
-        if (date != null) {
-            File file = new File("sales_history.csv");
-            if (file.exists()) {
-                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    int transactionTotal = 0;
-                    while ((line = br.readLine()) != null) {
-                        String[] parts = line.split(",");
-                        if (LocalDate.parse(parts[0]).isEqual(date)) {
-                            int quantity = Integer.parseInt(parts[2]);
-                            int price = Integer.parseInt(parts[3]);
-                            int total = quantity * price;
-                            salesHistory.add(parts[1] + " x " + parts[2] + " - ₱" + total);
-                            transactionTotal += total;
-                        }
-                    }
-                    salesHistory.add("Total for the day: ₱" + transactionTotal);
-                } catch (IOException e) {
-                    showAlert("Error reading sales history.");
+                    // Display an error message for invalid quantity input
+                    showAlert(Alert.AlertType.ERROR, "Invalid Quantity", "Please enter a valid positive integer for quantity.");
                 }
             } else {
-                showAlert("No sales history found.");
+                // Display an error message for no product selected or quantity is empty
+                showAlert(Alert.AlertType.ERROR, "Selection Error", "Please select a product and enter a quantity.");
             }
         } else {
-            showAlert("Select a date to view sales history.");
+            // Display an error message for no product selected
+            showAlert(Alert.AlertType.ERROR, "Selection Error", "Please select a product from the list.");
         }
     }
 
-    @FXML
-    private void showStatistics() {
-        productListView.getItems().clear();
-        productPieChart.getData().clear();
-        Profit_list_view.getItems().clear(); // Clear previous profit list view entries
-
-        LocalDate from = fromDate.getValue();
-        LocalDate to = toDate.getValue();
-
-        if (from != null && to != null) {
-            Map<String, Integer> productSales = new HashMap<>();
-            Map<LocalDate, Integer> dailyProfit = new HashMap<>();
-            File file = new File("sales_history.csv");
-
-            if (file.exists()) {
-                try (BufferedReader br = new BufferedReader(new FileReader(file))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        String[] parts = line.split(",");
-                        LocalDate date = LocalDate.parse(parts[0]);
-                        if (!date.isBefore(from) && !date.isAfter(to)) {
-                            String item = parts[1];
-                            int quantity = Integer.parseInt(parts[2]);
-                            int price = Integer.parseInt(parts[3]);
-                            int totalPrice = Integer.parseInt(parts[4]); // Parse total price
-                            productSales.put(item, productSales.getOrDefault(item, 0) + quantity);
-
-                            dailyProfit.put(date, dailyProfit.getOrDefault(date, 0) + totalPrice);
-
-                            String row = String.format("Date: %s | Item: %s | Quantity: %d | Retail Price: %d | Total: %d",
-                                    parts[0], item, quantity, price, totalPrice);
-                            productListView.getItems().add(row);
-                        }
-                    }
-                } catch (IOException e) {
-                    showAlert("Error reading sales history.");
-                }
-
-                // Calculate total sales for percentage calculation
-                int totalSales = productSales.values().stream().mapToInt(Integer::intValue).sum();
-
-                for (Map.Entry<String, Integer> entry : productSales.entrySet()) {
-                    String item = entry.getKey();
-                    int quantity = entry.getValue();
-                    double percentage = (quantity / (double) totalSales) * 100;
-                    productPieChart.getData().add(new PieChart.Data(
-                            String.format("%s (%.2f%%)", item, percentage), quantity));
-                }
-
-                updateProfitGraph(dailyProfit);
-
-                // Add total profit per day to Profit_list_view
-                for (Map.Entry<LocalDate, Integer> entry : dailyProfit.entrySet()) {
-                    String profitEntry = String.format("Date: %s | Total Profit: ₱%d", entry.getKey(), entry.getValue());
-                    Profit_list_view.getItems().add(profitEntry);
-                }
-            } else {
-                showAlert("No sales history found.");
-            }
-        } else {
-            showAlert("Select a valid date range.");
-        }
-    }
-
-    private void updateProfitGraph(Map<LocalDate, Integer> dailyProfit) {
-        Profitgraph.getData().clear(); // Clear existing data
-
-        for (Map.Entry<LocalDate, Integer> entry : dailyProfit.entrySet()) {
-            LocalDate date = entry.getKey();
-            int profit = entry.getValue();
-
-            XYChart.Series<String, Number> series = new XYChart.Series<>();
-            series.setName(date.toString());
-            series.getData().add(new XYChart.Data<>(date.toString(), profit));
-
-            Profitgraph.getData().add(series);
-        }
-    }
-
-
-    private void updateTotals() {
-        double subtotal = 0;
-        for (String item : cartItems) {
-            String[] parts = item.split(" x ");
-            String itemName = parts[0];
-            int quantity = Integer.parseInt(parts[1]);
-            subtotal += itemPrices.get(itemName) * quantity;
-        }
-
-        double taxRate = 0.10;
-        double tax = subtotal * taxRate;
-        double total = subtotal + tax;
-
-        temporarytotal.setText(String.valueOf(subtotal));
-        Taxtotal.setText(String.valueOf(tax));
-        overalltotal.setText(String.valueOf(total));
-    }
-
-
-    private void generateReceipt() {
-        String timestamp = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss").format(java.time.LocalDateTime.now());
-        String receiptFileName = "receipt_" + timestamp + ".txt";
-
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(receiptFileName))) {
-            // Header
-            writer.write("**************************\n");
-            writer.write("       STORE NAME        \n");
-            writer.write("    ADDRESS LINE 1       \n");
-            writer.write("    ADDRESS LINE 2       \n");
-            writer.write("    PHONE NUMBER         \n");
-            writer.write("**************************\n\n");
-
-            writer.write("Receipt:\n");
-            writer.write("Date: " + DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss").format(java.time.LocalDateTime.now()) + "\n\n");
-
-            writer.write("Item               Qty   Price\n");
-            writer.write("--------------------------------\n");
-            for (String item : cartItems) {
-                writer.write(formatReceiptItem(item) + "\n");
-            }
-
-            writer.write("\n");
-            writer.write("--------------------------------\n");
-            writer.write(String.format("%-20s %8s\n", "Subtotal:", "₱" + temporarytotal.getText()));
-            writer.write(String.format("%-20s %8s\n", "Tax:", "₱" + Taxtotal.getText()));
-            writer.write(String.format("%-20s %8s\n", "Total:", "₱" + overalltotal.getText()));
-            writer.write("--------------------------------\n");
-
-            writer.write("\nThank you for shopping with us!\n");
-            writer.write("Please come again.\n");
-        } catch (IOException e) {
-            showAlert("Error generating receipt.");
-        }
-    }
-
-    private String formatReceiptItem(String item) {
-        String[] parts = item.split(" x ");
-        String itemName = parts[0];
-        String quantity = parts[1];
-        return String.format("%-20s %5s", itemName, quantity);
-    }
-
-    private void saveSalesToCSV() {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("sales_history.csv", true))) {
-            for (String item : cartItems) {
-                String[] parts = item.split(" x ");
-                String itemName = parts[0];
-                int quantity = Integer.parseInt(parts[1]);
-                int price = itemPrices.get(itemName);
-                int totalPrice = quantity * price;
-                writer.write(SetCartpurchaseDate.getValue() + "," + itemName + "," + quantity + "," + price + "," + totalPrice);
-                writer.newLine();
-            }
-        } catch (IOException e) {
-            showAlert("Error saving sales history.");
-        }
-    }
-
-    private void showAlert(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Information");
+    // Utility method to show alert dialogs
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
     }
+
+
+    @FXML
+    private void editQuantity() {
+        String selectedItem = cartListView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null && !itemquantity.getText().isEmpty()) {
+            String itemName = selectedItem.split(" x ")[0];
+            int newQuantity = Integer.parseInt(itemquantity.getText());
+            Product product = productList.getProductByName(itemName);
+            if (product != null) {
+                double totalPrice = newQuantity * product.getPrice();
+                cartItems.set(cartListView.getSelectionModel().getSelectedIndex(), String.format("%s x %d @ ₱%.2f", itemName, newQuantity, totalPrice));
+                itemQuantities.put(itemName, newQuantity);
+                updateTotal();
+                System.out.println("Item quantity edited: " + itemName + " x " + newQuantity);
+            }
+        }
+    }
+
+
+    @FXML
+    private void deleteFromCart() {
+        String selectedItem = cartListView.getSelectionModel().getSelectedItem();
+        if (selectedItem != null) {
+            String itemName = selectedItem.split(" x ")[0];
+            cartItems.remove(selectedItem);
+            itemQuantities.remove(itemName);
+            updateTotal();
+            System.out.println("Item deleted from cart: " + itemName);
+        }
+    }
+
+    @FXML
+    private void checkOut() {
+        if (!cartItems.isEmpty()) {
+            TextInputDialog dialog = new TextInputDialog();
+            dialog.setTitle("Payment");
+            dialog.setHeaderText("Enter the payment amount:");
+            Optional<String> result = dialog.showAndWait();
+
+            if (result.isPresent()) {
+                try {
+                    double payment = Double.parseDouble(result.get());
+                    double total = Double.parseDouble(overalltotal.getText());
+                    double change = payment - total;
+
+                    if (change >= 0) {
+                        LocalDateTime now = LocalDateTime.now();
+                        String timestamp = DATE_TIME_FORMATTER.format(now);
+
+                        StringBuilder saleRecord = new StringBuilder(timestamp);
+
+                        List<String> saleItems = new ArrayList<>();
+                        for (String item : cartItems) {
+                            String[] parts = item.split(" x ");
+                            String itemName = parts[0];
+                            int quantity = Integer.parseInt(parts[1].split(" @ ")[0]); // Extract quantity
+                            double price = productList.getProductByName(itemName).getPrice();
+                            saleItems.add(String.format("%s (%d x %.2f)", itemName, quantity, price));
+                        }
+
+                        saleRecord.append(", ").append(String.join(", ", saleItems));
+                        saleRecord.append(String.format(", Total: %.2f", total));
+                        saleHistory.add(saleRecord.toString());
+
+                        saveSaleHistoryToCSV();
+
+                        cartItems.clear();
+                        itemQuantities.clear();
+                        overalltotal.clear();
+
+                        // Show confirmation dialog with change
+                        Alert confirmation = new Alert(Alert.AlertType.INFORMATION);
+                        confirmation.setTitle("Checkout Complete");
+                        confirmation.setHeaderText("Payment Successful");
+                        confirmation.setContentText(String.format("Total: ₱%.2f\nPayment: ₱%.2f\nChange: ₱%.2f", total, payment, change));
+                        confirmation.showAndWait();
+
+                        System.out.println("Checkout process completed. Change: " + change);
+                    } else {
+                        showAlert(Alert.AlertType.ERROR, "Insufficient Payment", "The payment amount is less than the total cost.");
+                    }
+                } catch (NumberFormatException e) {
+                    // Handle invalid number format in payment input
+                    showAlert(Alert.AlertType.ERROR, "Invalid Input", "Please enter a valid payment amount.");
+                }
+            }
+        }
+    }
+
+
+    @FXML
+    private void resetCart() {
+        cartItems.clear();
+        itemQuantities.clear();
+        overalltotal.clear();
+        System.out.println("Cart reset.");
+    }
+
+    @FXML
+    private void showStatistics() {
+        LocalDate from = fromDate.getValue();
+        LocalDate to = toDate.getValue();
+        if (from != null && to != null && !from.isAfter(to)) {
+            System.out.println("Showing statistics from " + from + " to " + to);
+            List<String> filteredSales = filterSalesByDate(from, to);
+            updateProductPieChart(filteredSales);
+            updateProfitGraph(filteredSales);
+            updateProductListView(filteredSales);
+            updateProfitListView(filteredSales);
+        } else {
+            System.out.println("Invalid date range.");
+        }
+    }
+
+
+    private List<String> filterSalesByDate(LocalDate from, LocalDate to) {
+        List<String> filteredSales = new ArrayList<>();
+        for (String sale : saleHistory) {
+            String dateStr = sale.split(",")[0];
+            LocalDate saleDate = LocalDate.parse(dateStr, DATE_TIME_FORMATTER);
+            if ((saleDate.isEqual(from) || saleDate.isAfter(from)) && (saleDate.isEqual(to) || saleDate.isBefore(to))) {
+                filteredSales.add(sale);
+            }
+        }
+        return filteredSales;
+    }
+
+    private void updateTotal() {
+        double total = itemQuantities.entrySet().stream()
+                .mapToDouble(entry -> productList.getProductByName(entry.getKey()).getPrice() * entry.getValue())
+                .sum();
+        overalltotal.setText(String.format("%.2f", total));
+    }
+
+    private void updateProductPieChart(List<String> filteredSales) {
+        productPieChart.getData().clear();
+        Map<String, Integer> productCounts = new HashMap<>();
+        int totalItems = 0;
+        for (String sale : filteredSales) {
+            String[] saleDetails = sale.split(", ");
+            for (String item : saleDetails) {
+                if (item.contains("(") && item.contains(")")) {
+                    String[] parts = item.split(" \\(");
+                    String itemName = parts[0].trim();
+                    int quantity = Integer.parseInt(parts[1].split(" ")[0].replaceAll("\\D+", ""));
+                    productCounts.put(itemName, productCounts.getOrDefault(itemName, 0) + quantity);
+                    totalItems += quantity;
+                }
+            }
+        }
+        for (Map.Entry<String, Integer> entry : productCounts.entrySet()) {
+            PieChart.Data data = new PieChart.Data(entry.getKey(), entry.getValue());
+            productPieChart.getData().add(data);
+        }
+        // Update legend with percentages
+        for (PieChart.Data data : productPieChart.getData()) {
+            double percentage = (data.getPieValue() / totalItems) * 100;
+            data.setName(String.format("%s (%.2f%%)", data.getName(), percentage));
+        }
+    }
+
+
+    private void updateProfitGraph(List<String> filteredSales) {
+        Profitgraph.getData().clear();
+        Map<String, Double> profitData = new TreeMap<>(); // Use TreeMap to sort by date
+        for (String sale : filteredSales) {
+            String date = sale.split(",")[0].split(" ")[0];
+            double dailyTotal = 0.0;
+            for (String item : sale.split(", ")) {
+                if (item.contains("(") && item.contains(")")) {
+                    String[] parts = item.split(" \\(")[1].split(" x ");
+                    int quantity = Integer.parseInt(parts[0].split(" ")[0]);
+                    double price = Double.parseDouble(parts[1].split("\\)")[0]);
+                    dailyTotal += quantity * price;
+                }
+            }
+            profitData.put(date, profitData.getOrDefault(date, 0.0) + dailyTotal);
+        }
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.setName("Profit");
+
+        for (Map.Entry<String, Double> entry : profitData.entrySet()) {
+            XYChart.Data<String, Number> data = new XYChart.Data<>(entry.getKey(), entry.getValue());
+            series.getData().add(data);
+        }
+
+        Profitgraph.getData().add(series);
+
+        // Set different colors for different data points
+        int i = 0;
+        for (XYChart.Data<String, Number> data : series.getData()) {
+            data.getNode().setStyle("-fx-bar-fill: " + getColor(i) + ";");
+            i++;
+        }
+    }
+
+    // Helper method to return a color for a given index
+    private String getColor(int index) {
+        String[] colors = {
+                "#4caf50", "#2196f3", "#ffeb3b", "#ff5722", "#9c27b0", "#00bcd4", "#ffc107", "#e91e63", "#3f51b5", "#8bc34a"
+        };
+        return colors[index % colors.length];
+    }
+
+
+    private void updateProductListView(List<String> filteredSales) {
+        productListView.getItems().clear();
+        for (String sale : filteredSales) {
+            productListView.getItems().add(sale);
+        }
+    }
+
+    private void updateProfitListView(List<String> filteredSales) {
+        Profit_list_view.getItems().clear();
+        Map<String, Double> dailyProfits = new TreeMap<>(); // Use TreeMap to sort by date
+        for (String sale : filteredSales) {
+            String date = sale.split(",")[0].split(" ")[0];
+            double dailyTotal = 0.0;
+            for (String item : sale.split(", ")) {
+                if (item.contains("(") && item.contains(")")) {
+                    String[] parts = item.split(" \\(")[1].split(" x ");
+                    int quantity = Integer.parseInt(parts[0].split(" ")[0]);
+                    double price = Double.parseDouble(parts[1].split("\\)")[0]);
+                    dailyTotal += quantity * price;
+                }
+            }
+            dailyProfits.put(date, dailyProfits.getOrDefault(date, 0.0) + dailyTotal);
+        }
+        for (Map.Entry<String, Double> entry : dailyProfits.entrySet()) {
+            Profit_list_view.getItems().add(String.format("%s: ₱%.2f", entry.getKey(), entry.getValue()));
+        }
+    }
+
+    private void saveSaleHistoryToCSV() {
+        try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(SALE_HISTORY_CSV))) {
+            for (String sale : saleHistory) {
+                writer.write(sale);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void loadSaleHistoryFromCSV() {
+        if (Files.exists(Paths.get(SALE_HISTORY_CSV))) {
+            try (BufferedReader reader = Files.newBufferedReader(Paths.get(SALE_HISTORY_CSV))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    saleHistory.add(line);
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
 }
+
+
