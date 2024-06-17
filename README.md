@@ -1,1 +1,3 @@
-still work in progress repo
+video of the revisions 
+
+https://youtu.be/hMagjV7H_gY
