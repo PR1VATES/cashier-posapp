@@ -1,0 +1,7 @@
+-----Receipt-----
+Items Purchased:
+- Potato (12 x 45.00)
+
+Total: ₱540.0
+Payment: ₱1000.0
+Change: ₱460.0

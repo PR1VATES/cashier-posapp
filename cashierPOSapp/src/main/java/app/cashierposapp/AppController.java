@@ -1,8 +1,11 @@
 package app.cashierposapp;
 
+
+import javafx.fxml.FXML;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.chart.PieChart;
 import javafx.scene.chart.BarChart;
@@ -10,6 +13,7 @@ import javafx.scene.chart.XYChart;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -21,23 +25,16 @@ public class AppController {
     private static final String SALE_HISTORY_CSV = "sale_history.csv";
     private static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    // FXML components in the "Cashier App" tab
+
     @FXML private ListView<String> cartListView;
-    @FXML private Button addButton;
-    @FXML private Button editButton;
-    @FXML private Button deleteButton;
-    @FXML private Button checkoutButton;
     @FXML private ListView<String> SaleHistoryList;
     @FXML private TextField overalltotal;
-    @FXML private DatePicker SetCartpurchaseDate;
     @FXML private TextField itemquantity;
-    @FXML private Button resetCart;
     @FXML private ListView<String> itemselection;
-
-    // FXML components in the "Statistics" tab
+    @FXML private TableView<Product> inventorytable;
+    
     @FXML private DatePicker fromDate;
     @FXML private DatePicker toDate;
-    @FXML private Button showButton;
     @FXML private ListView<String> productListView;
     @FXML private PieChart productPieChart;
     @FXML private ListView<String> Profit_list_view;
@@ -57,6 +54,7 @@ public class AppController {
         itemSelection = FXCollections.observableArrayList();
         itemQuantities = new HashMap<>();
         productList = new ProductList();
+        initializeInventoryTable();
 
         cartListView.setItems(cartItems);
         SaleHistoryList.setItems(saleHistory);
@@ -122,25 +120,51 @@ public class AppController {
                     System.out.println("Item added to cart: " + itemKey + " x " + quantityToAdd);
                 } else {
                     // Display an error message for invalid quantity input
-                    showAlert(Alert.AlertType.ERROR, "Invalid Quantity", "Please enter a valid positive integer for quantity.");
+                    showAlert("Invalid Quantity", "Please enter a valid positive integer for quantity.");
                 }
             } else {
                 // Display an error message for no product selected or quantity is empty
-                showAlert(Alert.AlertType.ERROR, "Selection Error", "Please select a product and enter a quantity.");
+                showAlert("Selection Error", "Please select a product and enter a quantity.");
             }
         } else {
             // Display an error message for no product selected
-            showAlert(Alert.AlertType.ERROR, "Selection Error", "Please select a product from the list.");
+            showAlert("Selection Error", "Please select a product from the list.");
         }
     }
 
     // Utility method to show alert dialogs
-    private void showAlert(Alert.AlertType alertType, String title, String message) {
-        Alert alert = new Alert(alertType);
+    private void showAlert(String title, String message) {
+        Alert alert = new Alert(Alert.AlertType.ERROR);
         alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.showAndWait();
+    }
+    private void initializeInventoryTable() {
+        TableColumn<Product, String> idColumn = new TableColumn<>("ID");
+        idColumn.setCellValueFactory(cellData -> cellData.getValue().idProperty());
+        idColumn.setPrefWidth(154.0);
+
+        TableColumn<Product, String> nameColumn = new TableColumn<>("NAME");
+        nameColumn.setCellValueFactory(cellData -> cellData.getValue().nameProperty());
+        nameColumn.setPrefWidth(374.0);
+        nameColumn.setEditable(false);
+
+        TableColumn<Product, Number> priceColumn = new TableColumn<>("PRICE");
+        priceColumn.setCellValueFactory(cellData -> cellData.getValue().priceProperty());
+        priceColumn.setPrefWidth(236.0);
+        priceColumn.setEditable(false);
+
+        TableColumn<Product, Number> stockColumn = new TableColumn<>("STOCK");
+        stockColumn.setCellValueFactory(cellData -> cellData.getValue().stockProperty());
+        stockColumn.setPrefWidth(388.0);
+        stockColumn.setEditable(false);
+
+        inventorytable.getColumns().addAll(idColumn, nameColumn, priceColumn, stockColumn);
+
+        // Populate table with data from ProductList
+        ObservableList<Product> productListData = FXCollections.observableArrayList(productList.getAllProducts());
+        inventorytable.setItems(productListData);
     }
 
 
@@ -226,11 +250,11 @@ public class AppController {
 
                         System.out.println("Checkout process completed. Change: " + change);
                     } else {
-                        showAlert(Alert.AlertType.ERROR, "Insufficient Payment", "The payment amount is less than the total cost.");
+                        showAlert("Insufficient Payment", "The payment amount is less than the total cost.");
                     }
                 } catch (NumberFormatException e) {
                     // Handle invalid number format in payment input
-                    showAlert(Alert.AlertType.ERROR, "Invalid Input", "Please enter a valid payment amount.");
+                    showAlert("Invalid Input", "Please enter a valid payment amount.");
                 }
             }
         }
@@ -376,10 +400,37 @@ public class AppController {
 
     private void updateProductListView(List<String> filteredSales) {
         productListView.getItems().clear();
+
         for (String sale : filteredSales) {
-            productListView.getItems().add(sale);
+            StringBuilder saleString = new StringBuilder();
+
+            // Extract date from the sale record
+            String dateStr = sale.split(", ")[0];
+            saleString.append(dateStr).append(": ");
+
+            // Extract items and their quantities from each sale record
+            String[] saleDetails = sale.split(", ");
+            for (int i = 1; i < saleDetails.length; i++) { // Start from index 1 to skip the timestamp
+                String item = saleDetails[i];
+                if (item.contains("(") && item.contains(")")) {
+                    String[] parts = item.split(" \\(");
+                    String itemName = parts[0].trim();
+                    String quantityStr = parts[1].split(" ")[0].replaceAll("\\D+", ""); // Extract quantity
+                    int quantity = Integer.parseInt(quantityStr);
+
+                    if (saleString.length() > dateStr.length() + 2) {
+                        saleString.append(", ");
+                    }
+                    saleString.append(itemName).append(" : ").append(quantity); // Append item name and quantity
+                }
+            }
+
+            productListView.getItems().add(saleString.toString());
         }
     }
+
+
+
 
     private void updateProfitListView(List<String> filteredSales) {
         Profit_list_view.getItems().clear();
@@ -414,8 +465,9 @@ public class AppController {
     }
 
     private void loadSaleHistoryFromCSV() {
-        if (Files.exists(Paths.get(SALE_HISTORY_CSV))) {
-            try (BufferedReader reader = Files.newBufferedReader(Paths.get(SALE_HISTORY_CSV))) {
+        Path path = Paths.get(SALE_HISTORY_CSV);
+        if (Files.exists(path)) {
+            try (BufferedReader reader = Files.newBufferedReader(path)) {
                 String line;
                 while ((line = reader.readLine()) != null) {
                     saleHistory.add(line);
@@ -426,5 +478,4 @@ public class AppController {
         }
     }
 }
-
 
